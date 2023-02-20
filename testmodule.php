@@ -30,12 +30,13 @@ class TestModule extends Module
 			parent::install()
 			&& $this->initDefaultConfigurationValues()
             && $this->createCustomer($this->getRandomFirstName(),$this->getRandomLastName(),$this->getRandomEmail())
-            && $this->generateNewProducts()
             && $this->generateNewCategory()
+            && $this->generateNewProducts()
 		;
 	}
 
-	public function uninstall()
+
+    public function uninstall()
 	{
 		return
 			parent::uninstall()
@@ -140,36 +141,29 @@ class TestModule extends Module
 	}
 
     /** Generate new product category */
-
     public function generateNewCategory() {
-            $new_category = new Category();
-            $new_category->id_parent = 0;
-            $new_category->name = 'Nauja';
-            $new_category->description = 'Nauja kategorija';
-            $new_category->link_rewrite = 'nauja-kategorija1';
-            $new_category->meta_title = 'nauja';
-            $new_category->meta_description = 'naujaa';
-            $new_category->meta_keywords = 'nauja';
-            $new_category->active = true;
-            $new_category->position = 1;
-
-            $new_category->add();
-
-            return $new_category;
+        $category_names = array('Kompiuteriai', 'Telefonai', 'Televizoriai');
+        foreach ($category_names as $category_name) {
+            $category = new Category();
+            $category->name = array('1' => $category_name);
+            $category->description = 'Nauja kategorija ';
+            $category->link_rewrite = array('1' => $category_name);
+            $category->active = 1;
+            $category->id_parent = 2;
+            $category->add();
         }
+    }
 
     /** Generate new products */
     public function generateNewProducts() {
-            $product = new Product();
-            $product->name = 'New Product38';
-            $product->description = 'Description of product1';
-            $product->description_short = 'New1';
-            $product->link_rewrite = 'new-product1';
-            $product->active = true;
-            $product->price = 9.99;
-            $product->add();
-
-            return $product->id;
+        $product = new Product();
+        $product->name = 'New Product';
+        $product->description = 'Description of product';
+        $product->description_short = 'New';
+        $product->link_rewrite = 'new-product';
+        $product->active = true;
+        $product->price = 9.99;
+        $product->add();
     }
 
     /** Generate random Customers */
@@ -182,8 +176,6 @@ class TestModule extends Module
         $customer->is_guest = false;
         $customer->passwd = Tools::hash('mypassword');
         $customer->add();
-
-        return $customer->id;
     }
 
     /** Generate random customer name */
