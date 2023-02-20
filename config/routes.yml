@@ -1,0 +1,5 @@
+test_route:
+  path: test
+  methods: [GET]
+  defaults:
+    _controller: 'PrestaShop\Module\testmodule\Controller\testController::testAction'
