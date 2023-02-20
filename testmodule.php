@@ -29,9 +29,9 @@ class TestModule extends Module
 		return
 			parent::install()
 			&& $this->initDefaultConfigurationValues()
-//            && $this->generateNewCategory()
-//            && $this->generateNewProducts()
-//            && $this->generateRandomCustomers(5)
+            && $this->createCustomer($this->getRandomFirstName(),$this->getRandomLastName(),$this->getRandomEmail())
+            && $this->generateNewProducts()
+            && $this->generateNewCategory()
 		;
 	}
 
@@ -39,9 +39,6 @@ class TestModule extends Module
 	{
 		return
 			parent::uninstall()
-//            && $this->generateNewCategory()
-//            && $this->generateNewProducts()
-//            && $this->generateRandomCustomers(5)
 		;
 	}
 
@@ -143,62 +140,70 @@ class TestModule extends Module
 	}
 
     /** Generate new product category */
-//    public function generateNewCategory() {
-//
-////        $categories = Category::getCategories($id_lang = false, $active = true, $order = 'position');
-//
-////        foreach ($categories as $category) {
-//            $new_category = new Category();
-//            $new_category->id_parent = 1;
-//            $new_category->active = true;
-//            $new_category->name = 'Nauja kategorija ' . 1;
-//            $new_category->link_rewrite = 'nauja-kategorija-' . 1;
-//            $new_category->add();
-////        }
-//    }
-//
-//    /** Generate new products */
-//    public function generateNewProducts() {
-//        for ($i = 1; $i <= 5; $i++) {
-//            $product = new Product();
-//            $product->name = array('en' => 'Product ' . $i, 'lt' => 'Produktas ' . $i);
-//            $product->description = array('en' => 'Description of product ' . $i, 'lt' => 'Produkto ' . $i . ' aprašymas');
-//            $product->price = 19.99;
-//            $product->quantity = 100;
-//            $product->id_category = 2;
-//            $product->add();
-//        }
-//    }
-//
-//    /** Generate random Customers */
-//    public function generateRandomCustomers($count) {
-//        for ($i = 0; $i < $count; $i++) {
-//            $customer = new Customer();
-//            $customer->firstname = $this->getRandomFirstName();
-//            $customer->lastname = $this->getRandomLastName();
-//            $customer->email = $this->getRandomEmail();
-//            $customer->add();
-//        }
-//    }
-//
-//    /** Generate random customer name */
-//    private function getRandomFirstName() {
-//        $firstnames = ['Jonas', 'Petras', 'Antanas', 'Vardenis', 'Algirdas'];
-//        return $firstnames[array_rand($firstnames)];
-//    }
-//
-//    /** Generate random customer surname */
-//    private function getRandomLastName() {
-//        $lastnames = ['Jonaitis', 'Petraitis', 'Antanaitis', 'Pavardenis', 'Algirdaitis'];
-//        return $lastnames[array_rand($lastnames)];
-//    }
-//
-//    /** Generate random customer email */
-//    private function getRandomEmail() {
-//        $domains = ['gmail.com', 'yahoo.com', 'hotmail.com'];
-//        $name = strtolower($this->getRandomFirstName() . '.' . $this->getRandomLastName());
-//        $domain = $domains[array_rand($domains)];
-//        return $name . '@' . $domain;
-//    }
+
+    public function generateNewCategory() {
+            $new_category = new Category();
+            $new_category->id_parent = 0;
+            $new_category->name = 'Nauja';
+            $new_category->description = 'Nauja kategorija';
+            $new_category->link_rewrite = 'nauja-kategorija1';
+            $new_category->meta_title = 'nauja';
+            $new_category->meta_description = 'naujaa';
+            $new_category->meta_keywords = 'nauja';
+            $new_category->active = true;
+            $new_category->position = 1;
+
+            $new_category->add();
+
+            return $new_category;
+        }
+
+    /** Generate new products */
+    public function generateNewProducts() {
+            $product = new Product();
+            $product->name = 'New Product38';
+            $product->description = 'Description of product1';
+            $product->description_short = 'New1';
+            $product->link_rewrite = 'new-product1';
+            $product->active = true;
+            $product->price = 9.99;
+            $product->add();
+
+            return $product->id;
+    }
+
+    /** Generate random Customers */
+    public function createCustomer($name, $surname, $email) {
+        $customer = new Customer();
+        $customer->firstname = $name;
+        $customer->lastname = $surname;
+        $customer->email = $email;
+        $customer->active = true;
+        $customer->is_guest = false;
+        $customer->passwd = Tools::hash('mypassword');
+        $customer->add();
+
+        return $customer->id;
+    }
+
+    /** Generate random customer name */
+    private function getRandomFirstName() {
+        $firstnames = ['Jonas', 'Petras', 'Antanas', 'Vardenis', 'Algirdas'];
+        return $firstnames[array_rand($firstnames)];
+    }
+
+    /** Generate random customer surname */
+    private function getRandomLastName() {
+        $lastnames = ['Jonaitis', 'Petraitis', 'Antanaitis', 'Pavardenis', 'Algirdaitis'];
+        return $lastnames[array_rand($lastnames)];
+    }
+
+    /** Generate random customer email */
+    private function getRandomEmail() {
+        $domains = ['gmail.com', 'yahoo.com', 'hotmail.com'];
+        $name = strtolower($this->getRandomFirstName() . '.' . $this->getRandomLastName());
+        $domain = $domains[array_rand($domains)];
+        return $name . '@' . $domain;
+    }
 }
 
