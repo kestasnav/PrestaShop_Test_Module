@@ -152,18 +152,39 @@ class TestModule extends Module
             $category->id_parent = 2;
             $category->add();
         }
+        return $category;
     }
 
     /** Generate new products */
     public function generateNewProducts() {
-        $product = new Product();
-        $product->name = 'New Product';
-        $product->description = 'Description of product';
-        $product->description_short = 'New';
-        $product->link_rewrite = 'new-product';
-        $product->active = true;
-        $product->price = 9.99;
-        $product->add();
+        $product_data = array(
+            array(
+                'name' => 'Dell Inspiron 15',
+                'description' => 'Galingas nešiojamas kompiuteris su Core i7 procesoriumi',
+                'price' => 799.99,
+            ),
+            array(
+                'name' => 'iPhone 12 Pro',
+                'description' => 'Naujausias Apple išmanusis telefonas su 5G technologija',
+                'price' => 1199.99,
+            ),
+            array(
+                'name' => 'Samsung QLED TV',
+                'description' => 'Aukščiausios klasės QLED televizorius su 4K UHD vaizdu',
+                'price' => 1999.99,
+            ),
+        );
+
+        foreach ($product_data as $data) {
+            $product = new Product();
+            $product->name = array('1' => $data['name']);
+            $product->description = array('1' => $data['description']);
+            $product->price = $data['price'];
+            $product->id_category_default = 2;
+            $product->add();
+        }
+
+        return $product;
     }
 
     /** Generate random Customers */
@@ -176,6 +197,7 @@ class TestModule extends Module
         $customer->is_guest = false;
         $customer->passwd = Tools::hash('mypassword');
         $customer->add();
+        return $customer;
     }
 
     /** Generate random customer name */
