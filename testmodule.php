@@ -31,7 +31,6 @@ class TestModule extends Module
 			&& $this->initDefaultConfigurationValues()
 //            && $this->generateNewCategory()
 //            && $this->generateNewProducts()
-//            && $this->registerHook('displayHeader')
 //            && $this->generateRandomCustomers(5)
 		;
 	}
@@ -42,18 +41,10 @@ class TestModule extends Module
 			parent::uninstall()
 //            && $this->generateNewCategory()
 //            && $this->generateNewProducts()
-//            && $this->unregisterHook('displayHeader')
 //            && $this->generateRandomCustomers(5)
 		;
 	}
 
-	/** Module configuration page */
-//	public function getContent()
-//	{
-//        $url = 'https://fakestoreapi.com/';
-//        $data = Tools::file_get_contents($url);
-//        $json_data = json_decode($data, true);
-//	}
     /** Module configuration page */
     public function getContent()
     {
@@ -69,7 +60,8 @@ class TestModule extends Module
             }
         }
 
-        $fields_form = [
+        $fields_form =  array(
+            'form' => array(
             'legend' => [
                 'title' => $this->l('Settings'),
             ],
@@ -85,8 +77,10 @@ class TestModule extends Module
             'submit' => [
                 'title' => $this->l('Save'),
                 'class' => 'btn btn-default pull-right'
-            ]
-        ];
+            ],
+            )
+            );
+
 
         $helper = new HelperForm();
         $helper->module = $this;
@@ -94,14 +88,12 @@ class TestModule extends Module
         $helper->token = Tools::getAdminTokenLite('AdminModules');
         $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
         $helper->default_form_language = (int)Configuration::get('PS_LANG_DEFAULT');
-        $helper->allow_employee_form_lang = $helper->default_form_language;
-        $helper->title = $this->displayName;
-        $helper->submit_action = 'submit'.$this->name;
 
-        // Load current value
         $helper->fields_value['API_URL'] = Configuration::get('API_URL');
 
-        return $output.$helper->generateForm([$fields_form]);
+        $output .= $helper->generateForm(array($fields_form));
+
+        return $output;
     }
 
     public function postProcess()
@@ -112,15 +104,9 @@ class TestModule extends Module
                 return;
             }
 
-            $updated_url = str_replace('https://fakestoreapi.com/', $api_url, Configuration::get('EXAMPLE_API_URL'));
+            $updated_url = str_replace('http://example.com/api', $api_url, Configuration::get('EXAMPLE_API_URL'));
             Configuration::updateValue('EXAMPLE_API_URL', $updated_url);
         }
-    }
-
-    public function hookDisplayHeader()
-    {
-        // Add JS file to header
-        $this->context->controller->addJS(Configuration::get('EXAMPLE_API_URL'));
     }
 
 	/** Initialize the module declaration */
