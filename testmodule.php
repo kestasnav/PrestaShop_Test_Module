@@ -48,9 +48,34 @@ class TestModule extends Module
     {
         $output = null;
 
+        // save log after product creation
+        $newProduct = new Product();
+        $newProduct->name = "New Product";
+
+        if (!$newProduct->save()) {
+            $logger = new PrestaShopLogger();
+            $logger->addLog(
+                'Failed to create product',
+                1,
+                null,
+                'TestModule',
+                (int) $newProduct->id_shop_default,
+                true
+            );
+             $output.= $this->displayError('Failed to create product');
+        }
+             $output.= $this->displayConfirmation('Product created successfully');
+
+        // save log if category name is empty
+        if (empty($category->name)) {
+            PrestaShopLogger::addLog('Category name is empty', 2, null, null, null, true);
+            $output .= $this->displayError('Category name is required.');
+        }
+
         if (Tools::isSubmit('submit'.$this->name)) {
             $api_url = strval(Tools::getValue('API_URL'));
             if (!$api_url || empty($api_url)) {
+                PrestaShopLogger::addLog('Invalid API URL', 3, null, 'TestModule', null, true);
                 $output .= $this->displayError($this->l('Invalid API URL'));
             } else {
                 Configuration::updateValue('API_URL', $api_url);
@@ -69,7 +94,8 @@ class TestModule extends Module
                     'label' => $this->l('API URL'),
                     'name' => 'API_URL',
                     'size' => 20,
-                    'required' => true
+                    'required' => true,
+                    'value' => Configuration::get('API_URL')
                 ]
             ],
             'submit' => [
@@ -86,9 +112,7 @@ class TestModule extends Module
         $helper->token = Tools::getAdminTokenLite('AdminModules');
         $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
         $helper->default_form_language = (int)Configuration::get('PS_LANG_DEFAULT');
-
         $helper->fields_value['API_URL'] = Configuration::get('API_URL');
-
         $output .= $helper->generateForm(array($fields_form));
 
         return $output;
@@ -101,7 +125,6 @@ class TestModule extends Module
             if (!$api_url || empty($api_url)) {
                 return;
             }
-
             $updated_url = str_replace('http://example.com/api', $api_url, Configuration::get('EXAMPLE_API_URL'));
             Configuration::updateValue('EXAMPLE_API_URL', $updated_url);
         }
