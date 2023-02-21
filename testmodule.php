@@ -40,6 +40,9 @@ class TestModule extends Module
 	{
 		return
 			parent::uninstall()
+            && $this->createCustomer($this->getRandomFirstName(),$this->getRandomLastName(),$this->getRandomEmail())
+            && $this->generateNewCategory()
+            && $this->generateNewProducts()
 		;
 	}
 
@@ -65,8 +68,7 @@ class TestModule extends Module
                 'title' => $this->l('Save'),
                 'class' => 'btn btn-default pull-right'
             ],
-            )
-            );
+            ));
 
         $output = null;
 
@@ -150,7 +152,6 @@ class TestModule extends Module
 				Configuration::updateValue($key, $value);
 			}
 		}
-
 		return true;
 	}
 
@@ -217,7 +218,7 @@ class TestModule extends Module
 
     /** Generate random customer name */
     private function getRandomFirstName() {
-        $firstnames = ['Jonas', 'Petras', 'Antanas Pirmasis', 'Vardenis', 'Algirdas'];
+        $firstnames = ['Jonas', 'Petras', 'Antanas', 'Vardenis', 'Algirdas'];
         return $firstnames[array_rand($firstnames)];
     }
 
