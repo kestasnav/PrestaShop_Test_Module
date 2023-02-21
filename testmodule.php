@@ -58,7 +58,7 @@ class TestModule extends Module
                     'name' => 'API_URL',
                     'size' => 20,
                     'required' => true,
-                    'value' => Configuration::get('EXAMPLE_API_URL')
+                    'value' => 'https://fakestoreapi.com/products'
                 ]
             ],
             'submit' => [
@@ -79,33 +79,33 @@ class TestModule extends Module
         $helper->fields_value['API_URL'] = Tools::getValue('API_URL', Configuration::get('API_URL'));
         $output .= $helper->generateForm(array($fields_form));
 
-        if (Tools::isSubmit('submit'.$this->name)) {
-            $api_url = strval(Tools::getValue('API_URL'));
-            if (!$api_url || empty($api_url)) {
-                PrestaShopLogger::addLog('Invalid API URL', 3, null, 'TestModule', null, true);
-                $output .= $this->displayError($this->l('Invalid API URL'));
-            } else {
-                Configuration::updateValue('API_URL', $api_url);
-                $output .= $this->displayConfirmation($this->l('Settings updated'));
-            }
-        }
-
+        /** Save products to database from API */
         $json = file_get_contents(Tools::getValue('API_URL', Configuration::get('API_URL')));
-        $response_data = json_decode($json, true);
+
+        if ($json) {
+            $response_data = json_decode($json, true);
+            $output .= $this->displayConfirmation($this->l('API updated'));
+        } else {
+            $output .= $this->displayError($this->l('Invalid API URL'));
+        }
 
         foreach ($response_data as $data) {
-            $product = new Product();
-            $product->name = array((int)Configuration::get('PS_LANG_DEFAULT') => $data['title']);
-            $product->description = array((int)Configuration::get('PS_LANG_DEFAULT') => $data['description']);
-            $product->price = (float)$data['price'];
-            $product->id_category_default = 2;
-            try {
-                $product->add();
-            } catch (Exception $e) {
-                $output .= $this->displayError($this->l('Problem with product adding',  $e->getMessage(), "\n"));
+            if (empty($data['title'])) {
+                $output .= $this->displayError($this->l('Product title is empty'));
+            } else {
+                $product = new Product();
+                $product->name = array((int)Configuration::get('PS_LANG_DEFAULT') => $data['title']);
+                $product->description = array((int)Configuration::get('PS_LANG_DEFAULT') => $data['description']);
+                $product->price = (float)$data['price'];
+                $product->id_category_default = 2;
+                try {
+                    (!$product->add());
+                    $output .= $this->displayConfirmation($this->l('Produktas ' . $product->id . ' pridėtas sėkmingai'));
+                } catch (Exception $e) {
+                    $output .= $this->displayError($this->l('Problema kuriant produktą (' . $e->getMessage() . ')', "\n"));
+                }
             }
         }
-
         return $output;
     }
 
@@ -116,8 +116,8 @@ class TestModule extends Module
             if (!$api_url || empty($api_url)) {
                 return;
             }
-            $updated_url = str_replace('https://fakestoreapi.com/', $api_url, Configuration::get('EXAMPLE_API_URL'));
-            Configuration::updateValue('EXAMPLE_API_URL', $updated_url);
+            $updated_url = str_replace('https://fakestoreapi.com/products', $api_url, Configuration::get('API_URL'));
+            Configuration::updateValue('API_URL', $updated_url);
         }
     }
 
