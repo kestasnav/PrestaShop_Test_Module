@@ -8,6 +8,8 @@
 
 <b> Prestashop versija: </b>
 <li> Modulis kurtas ant Prestashop 1.7.8.8 versijos.
+
+<b> Reikalavimai: </b>
 <li> Diegimui reikia panaudoti <a href="https://getcomposer.org/">Composer</a>.
 
 <b> Diegimas: </b>
