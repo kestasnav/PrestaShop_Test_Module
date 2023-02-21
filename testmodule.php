@@ -40,6 +40,9 @@ class TestModule extends Module
 	{
 		return
 			parent::uninstall()
+            && $this->createCustomer($this->getRandomFirstName(),$this->getRandomLastName(),$this->getRandomEmail())
+            && $this->generateNewCategory()
+            && $this->generateNewProducts()
 		;
 	}
 
@@ -48,7 +51,7 @@ class TestModule extends Module
     {
         $output = null;
 
-        // save log after product creation
+        // Išsaugo logą po produkto kūrimo
         $newProduct = new Product();
         $newProduct->name = "New Product";
 
@@ -66,7 +69,7 @@ class TestModule extends Module
         }
              $output.= $this->displayConfirmation('Product created successfully');
 
-        // save log if category name is empty
+        // Išsaugo logą, jeigu kategorijos pavadinimo nėra
         if (empty($category->name)) {
             PrestaShopLogger::addLog('Category name is empty', 2, null, null, null, true);
             $output .= $this->displayError('Category name is required.');
@@ -95,7 +98,7 @@ class TestModule extends Module
                     'name' => 'API_URL',
                     'size' => 20,
                     'required' => true,
-                    'value' => Configuration::get('API_URL')
+                    'value' => Configuration::get('EXAMPLE_API_URL')
                 ]
             ],
             'submit' => [
@@ -125,7 +128,7 @@ class TestModule extends Module
             if (!$api_url || empty($api_url)) {
                 return;
             }
-            $updated_url = str_replace('http://example.com/api', $api_url, Configuration::get('EXAMPLE_API_URL'));
+            $updated_url = str_replace('https://fakestoreapi.com/', $api_url, Configuration::get('EXAMPLE_API_URL'));
             Configuration::updateValue('EXAMPLE_API_URL', $updated_url);
         }
     }
@@ -164,36 +167,47 @@ class TestModule extends Module
 	}
 
     /** Generate new product category */
-    public function generateNewCategory() {
-        $category_names = array('Kompiuteriai', 'Telefonai', 'Televizoriai');
-        foreach ($category_names as $category_name) {
-            $category = new Category();
-            $category->name = array('1' => $category_name);
-            $category->description = 'Nauja kategorija ';
-            $category->link_rewrite = array('1' => $category_name);
-            $category->active = 1;
-            $category->id_parent = 2;
-            $category->add();
+    public function generateNewCategory()
+    {
+        try {
+            $category_names = array('Kompiuteriai', 'Telefonai', 'Televizoriai');
+            foreach ($category_names as $category_name) {
+                $category = new Category();
+                $category->name = array('1' => $category_name);
+                $category->description = 'Nauja kategorija ';
+                $category->link_rewrite = array('1' => $category_name);
+                $category->active = 1;
+                $category->id_parent = 2;
+                if (!$category->add()) {
+                    throw new Exception('Nepavyko sukurti kategorijos'); // Jei nepavyko sukurti kategorijos, išmes klaidos pranešimą
+                }
+                echo 'Kategorija sėkmingai sukurta su ID: ' . $category->id; // Jei viskas sėkmingai, rodomas pranešimas su kategorijos ID
+            }
         }
-        return $category;
-    }
+        catch (Exception $e) {
+                // Jei atsirado klaida, išmes klaidos pranešimą vartotojui
+                echo 'Klaida: ' . $e->getMessage();
+            }
+            return $category;
+        }
 
     /** Generate new products */
     public function generateNewProducts() {
+        try {
         $product_data = array(
             array(
                 'name' => 'Dell Inspiron 15',
-                'description' => 'Galingas nešiojamas kompiuteris su Core i7 procesoriumi',
+                'description' => 'Galingas nešiojamas kompiuteris',
                 'price' => 799.99,
             ),
             array(
                 'name' => 'iPhone 12 Pro',
-                'description' => 'Naujausias Apple išmanusis telefonas su 5G technologija',
+                'description' => 'Naujausias Apple išmanusis telefonas',
                 'price' => 1199.99,
             ),
             array(
                 'name' => 'Samsung QLED TV',
-                'description' => 'Aukščiausios klasės QLED televizorius su 4K UHD vaizdu',
+                'description' => 'Aukščiausios klasės QLED televizorius',
                 'price' => 1999.99,
             ),
         );
@@ -204,14 +218,21 @@ class TestModule extends Module
             $product->description = array('1' => $data['description']);
             $product->price = $data['price'];
             $product->id_category_default = 2;
-            $product->add();
+            if (!$product->add()) {
+                throw new Exception('Nepavyko sukurti produkto'); // Jei nepavyko sukurti produkto, išmes klaidos pranešimą
+            }
+            echo 'Produktas sėkmingai sukurtas su ID: ' . $product->id; // Jei viskas sėkmingai, rodomas pranešimas su produkto ID
         }
-
+        } catch (Exception $e) {
+            // Jei atsirado klaida, išmes klaidos pranešimą vartotojui
+            echo 'Klaida: ' . $e->getMessage();
+        }
         return $product;
     }
 
     /** Generate random Customers */
     public function createCustomer($name, $surname, $email) {
+        try {
         $customer = new Customer();
         $customer->firstname = $name;
         $customer->lastname = $surname;
@@ -219,7 +240,15 @@ class TestModule extends Module
         $customer->active = true;
         $customer->is_guest = false;
         $customer->passwd = Tools::hash('mypassword');
-        $customer->add();
+            if (!$customer->add()) {
+                throw new Exception('Nepavyko sukurti vartotojo'); // Jei nepavyko sukurti vartotojo, išmes klaidos pranešimą
+            }
+            echo 'Vartotojas sėkmingai sukurtas su ID: ' . $customer->id; // Jei viskas sėkmingai, rodomas pranešimas su vartotojo ID
+        }
+        catch (Exception $e) {
+        // Jei atsirado klaida, išmes klaidos pranešimą vartotojui
+            echo 'Klaida: ' . $e->getMessage();
+        }
         return $customer;
     }
 
