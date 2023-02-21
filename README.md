@@ -16,7 +16,7 @@
 <li> Parsisiųsti .zip failą <b>(Code -> Download ZIP)</b>.
 <li> Pervadinkite direktorijos pavadinimą į <b>testmodule</b>, nes direktorijos ir modulio pavadinimai turi sutapti.
 <li> Išarchyvuoti failą ir įkeltį į Prestashop modules direktoriją. <b>(pvz. C:\xampp\htdocs\prestashop\modules)</b>.
-<li> Modulio direktorijoje reikia įrašyti komandinę eilutę <b>composer install</b>
+<li> Modulio direktorijoje reikia įrašyti komandinę eilutę <b>composer install</b>, kad būtų atsiųsti visi reikiami failai i vendor katalogą.
 <li> Prisijungti prie Prestashop administracijos puslapio, paspausti <b>Modules->Marketplace</b>, paieškoje įvesti <b>testmodule</b> ir paspausti <b>Install</b>.
 
 <b> Trynimas: </b>
