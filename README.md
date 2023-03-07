@@ -1,10 +1,10 @@
 ﻿# PrestaShop Test Module
  
  <b> Apie modulį: </b>
-<li> Modulis diegimo metu sukuria dirbtinius duomenis, klientų, produktų kategorijų, bei pačių produktų.
-<li> Modulio valdymo dalyje galima užkrauti API ir išsaugoti duomenis į duombazę (panaudotas https://fakestoreapi.com/products).
+<li> Modulio valdymo dalyje galima užkrauti API ir išsaugoti <b>produktus</b>, bei <b>kategorijas</b> į duombazę (panaudotas https://fakestoreapi.com/products).
 <li> Įvedus netinkamą API nuoruodą valdymo lange išmetamas klaidos pranešimas.
 <li> Validuoja duomenis ar yra įvestas produkto pavadinimas.
+<li> Modulis sukuria dirbtinius <b>klientų</b> duomenis patvirtinimus formą.
 <li> Panaudotas composer.
 
 <b> Prestashop versija: </b>
