@@ -29,9 +29,6 @@ class TestModule extends Module
 		return
 			parent::install()
 			&& $this->initDefaultConfigurationValues()
-            && $this->createCustomer($this->getRandomFirstName(),$this->getRandomLastName(),$this->getRandomEmail())
-            && $this->generateNewCategory()
-            && $this->generateNewProducts()
 		;
 	}
 
@@ -40,34 +37,50 @@ class TestModule extends Module
 	{
 		return
 			parent::uninstall()
-            && $this->createCustomer($this->getRandomFirstName(),$this->getRandomLastName(),$this->getRandomEmail())
-            && $this->generateNewCategory()
-            && $this->generateNewProducts()
 		;
 	}
 
     /** Module configuration page */
     public function getContent()
     {
-        $fields_form =  array(
+        /** API form */
+        $fields_form = array(
             'form' => array(
-            'legend' => [
-                'title' => $this->l('Settings'),
-            ],
-            'input' => [
-                [
-                    'type' => 'text',
-                    'label' => $this->l('API URL'),
-                    'name' => 'API_URL',
-                    'size' => 20,
-                    'required' => true,
-                    'value' => 'https://fakestoreapi.com/products'
-                ]
-            ],
-            'submit' => [
-                'title' => $this->l('Save'),
-                'class' => 'btn btn-default pull-right'
-            ],
+                'legend' => [
+                    'title' => $this->l('API'),
+                ],
+                'input' => [
+                    [
+                        'type' => 'text',
+                        'label' => $this->l('API URL'),
+                        'name' => 'API_URL',
+                        'size' => 20,
+                        'required' => true,
+                    ]
+                ],
+                'submit' => [
+                    'title' => $this->l('Save'),
+                    'class' => 'btn btn-default pull-right'
+                ],
+            ));
+
+        /** Customers form */
+        $fields_form1 = array(
+            'form' => array(
+                'legend' => [
+                    'title' => $this->l('Customers'),
+                ],
+                'input' => [
+                    [
+                        'label' => $this->l('Create random customers to database'),
+                        'query' => $this->createCustomer($this->getRandomFirstName(), $this->getRandomLastName(), $this->getRandomEmail()),
+                    ]
+                ],
+                'submit' => [
+                    'title' => $this->l('Create'),
+                    'name' => 'submitForm',
+                    'class' => 'btn btn-default pull-right'
+                ],
             ));
 
         $output = null;
@@ -76,12 +89,16 @@ class TestModule extends Module
         $helper->module = $this;
         $helper->name_controller = $this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
+        $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
         $helper->default_form_language = (int)Configuration::get('PS_LANG_DEFAULT');
         $helper->fields_value['API_URL'] = Tools::getValue('API_URL', Configuration::get('API_URL'));
-        $output .= $helper->generateForm(array($fields_form));
+        $output .= $helper->generateForm(array($fields_form, $fields_form1));
 
-        /** Save products to database from API */
+        if (!Tools::isSubmit('submitMyForm')) {
+            $output .= $this->displayConfirmation($this->l('Customer created'));
+        }
+
+        /** Save products and categories to database from API */
         $json = file_get_contents(Tools::getValue('API_URL', Configuration::get('API_URL')));
 
         if ($json) {
@@ -91,23 +108,43 @@ class TestModule extends Module
             $output .= $this->displayError($this->l('Invalid API URL'));
         }
 
-        foreach ($response_data as $data) {
-            if (empty($data['title'])) {
-                $output .= $this->displayError($this->l('Product title is empty'));
-            } else {
-                $product = new Product();
-                $product->name = array((int)Configuration::get('PS_LANG_DEFAULT') => $data['title']);
-                $product->description = array((int)Configuration::get('PS_LANG_DEFAULT') => $data['description']);
-                $product->price = (float)$data['price'];
-                $product->id_category_default = 2;
-                try {
-                    (!$product->add());
-                    $output .= $this->displayConfirmation($this->l('Produktas ' . $product->id . ' pridėtas sėkmingai'));
-                } catch (Exception $e) {
-                    $output .= $this->displayError($this->l('Problema kuriant produktą (' . $e->getMessage() . ')', "\n"));
+        $count = 0;
+            foreach ($response_data as $data) {
+
+                if ($count >= 5) {
+                    break;
+                }
+
+                if (empty($data['title'])) {
+                    $output .= $this->displayError($this->l('Product title is empty'));
+                } else {
+                            $category = new Category();
+                            $category->name = array((int)Configuration::get('PS_LANG_DEFAULT') => $data['category']);
+                            $category->link_rewrite = array((int)Configuration::get('PS_LANG_DEFAULT') => 'new');
+                            $category->active = 1;
+                            $category->id_parent = 2;
+                            try {
+                                (!$category->add());
+                                $output .= $this->displayConfirmation($this->l('Kategorija ' . $category->id . ' pridėta sėkmingai'));
+                            } catch (Exception $e) {
+                                $output .= $this->displayError($this->l('Problema kuriant kategoriją (' . $e->getMessage() . ')', "\n"));
+                            }
+
+                    $product = new Product();
+                    $product->name = array((int)Configuration::get('PS_LANG_DEFAULT') => $data['title']);
+                    $product->description = array((int)Configuration::get('PS_LANG_DEFAULT') => $data['description']);
+                    $product->price = (float)$data['price'];
+                    $product->quantity = (float)$data['count'];
+                    $product->id_category_default = $category->id;
+                    $count++;
+                    try {
+                        (!$product->add());
+                        $output .= $this->displayConfirmation($this->l('Produktas ' . $product->id . ' pridėtas sėkmingai'));
+                    } catch (Exception $e) {
+                        $output .= $this->displayError($this->l('Problema kuriant produktą (' . $e->getMessage() . ')', "\n"));
+                    }
                 }
             }
-        }
         return $output;
     }
 
@@ -154,54 +191,6 @@ class TestModule extends Module
 		}
 		return true;
 	}
-
-    /** Generate new product category */
-    public function generateNewCategory()
-    {
-            $category_names = array('Kompiuteriai', 'Telefonai', 'Televizoriai');
-            foreach ($category_names as $category_name) {
-                $category = new Category();
-                $category->name = array('1' => $category_name);
-                $category->description = 'Nauja kategorija ';
-                $category->link_rewrite = array('1' => $category_name);
-                $category->active = 1;
-                $category->id_parent = 2;
-                $category->add();
-            }
-            return $category;
-        }
-
-    /** Generate new products */
-    public function generateNewProducts() {
-
-        $product_data = array(
-            array(
-                'name' => 'Dell Inspiron 15',
-                'description' => 'Galingas nešiojamas kompiuteris',
-                'price' => 799.99,
-            ),
-            array(
-                'name' => 'iPhone 12 Pro',
-                'description' => 'Naujausias Apple išmanusis telefonas',
-                'price' => 1199.99,
-            ),
-            array(
-                'name' => 'Samsung QLED TV',
-                'description' => 'Aukščiausios klasės QLED televizorius',
-                'price' => 1999.99,
-            ),
-        );
-
-        foreach ($product_data as $data) {
-            $product = new Product();
-            $product->name = array('1' => $data['name']);
-            $product->description = array('1' => $data['description']);
-            $product->price = $data['price'];
-            $product->id_category_default = 2;
-            $product->add();
-        }
-        return $product;
-    }
 
     /** Generate random Customers */
     public function createCustomer($name, $surname, $email) {
