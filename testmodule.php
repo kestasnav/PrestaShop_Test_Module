@@ -19,6 +19,7 @@ class TestModule extends Module
 		// 'TESTMODULE_BACKGROUND_COLOR' => '#eee',
 	];
 
+
 	public function __construct()
 	{
 		$this->initializeModule();
@@ -100,7 +101,7 @@ class TestModule extends Module
 
         /** Save products and categories to database from API */
         $json = file_get_contents(Tools::getValue('API_URL', Configuration::get('API_URL')));
-
+       // $json = file_get_contents('https://fakestoreapi.com/products');
         if ($json) {
             $response_data = json_decode($json, true);
             $output .= $this->displayConfirmation($this->l('API updated'));
@@ -114,10 +115,6 @@ class TestModule extends Module
                 if ($count >= 5) {
                     break;
                 }
-
-                if (empty($data['title'])) {
-                    $output .= $this->displayError($this->l('Product title is empty'));
-                } else {
                             $category = new Category();
                             $category->name = array((int)Configuration::get('PS_LANG_DEFAULT') => $data['category']);
                             $category->link_rewrite = array((int)Configuration::get('PS_LANG_DEFAULT') => 'new');
@@ -144,7 +141,23 @@ class TestModule extends Module
                         $output .= $this->displayError($this->l('Problema kuriant produktą (' . $e->getMessage() . ')', "\n"));
                     }
                 }
-            }
+
+        $this->title = $data['title'];
+        $this->category = $data['category'];
+        $this->price = $data['price'];
+
+        if (empty($this->title)) {
+            $output .= $this->displayError($this->l('Title is required.'));
+        }
+
+        if (empty($this->category)) {
+            $output .= $this->displayError($this->l('Category is required.'));
+        }
+
+        if (!is_int($this->price) || $this->price < 0) {
+            $output .= $this->displayError($this->l('Price must be a positive integer.'));
+        }
+
         return $output;
     }
 
