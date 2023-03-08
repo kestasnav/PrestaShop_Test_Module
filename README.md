@@ -3,7 +3,7 @@
  <b> Apie modulį: </b>
 <li> Modulio valdymo dalyje galima užkrauti API ir išsaugoti <b>produktus</b>, bei <b>kategorijas</b> į duombazę (panaudotas https://fakestoreapi.com/products).
 <li> Įvedus netinkamą API nuoruodą valdymo lange išmetamas klaidos pranešimas.
-<li> Validuoja duomenis ar yra įvestas produkto pavadinimas.
+<li> Validuoja duomenis ar yra įvestas produkto pavadinimas, kategorija, kaina.
 <li> Modulis sukuria dirbtinius <b>klientų</b> duomenis patvirtinimus formą.
 <li> Panaudotas composer.
 
